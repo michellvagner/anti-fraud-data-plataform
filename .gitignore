@@ -1,0 +1,29 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+
+# Arquivos temporários
+temp/
+teste/
+
+# Dados locais
+data/
+src/anti_fraud_data_plataform/
+
+# Variáveis e credenciais
+.env
+*.pem
+*.key
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+
+# VS Code / sistema
+.vscode/
+.DS_Store
+Thumbs.db
