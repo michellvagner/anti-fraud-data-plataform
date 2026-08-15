@@ -14,6 +14,7 @@ provider "aws" {
 
 resource "aws_s3_bucket" "data_lake" {
   bucket = "anti-fraud-data-platform-vagner"
+  force_destroy = true
 }
 
 resource "aws_s3_object" "landing" {

@@ -1,0 +1,58 @@
+CREATE OR REPLACE PIPE ANTI_FRAUD_DB.RAW.BRONZE_TRANSACTIONS_PIPE
+    AUTO_INGEST = TRUE
+AS
+    COPY INTO ANTI_FRAUD_DB.RAW.BRONZE_TRANSACTIONS (
+        MERCHANT_NAME,
+        MERCHANT_STATE,
+        MERCHANT_CITY,
+        RISK_SCORE,
+        BLOCK_IND,
+        TRANSACTION_ID,
+        BANK,
+        CARD_NUMBER,
+        AUTHORIZATION_CODE,
+        ACQUIRER_ID,
+        CARD_BRAND,
+        CURRENCY_CD,
+        TRANSACTION_COUNTRY_CD,
+        MERCHANT_ID,
+        REASON_CODE,
+        POS_NUMBER,
+        MERCHANT_CATEGORY_CODE,
+        TRN_DT,
+        TRANSACTION_TYPE,
+        TRANSACTION_AMOUNT,
+        CARD_LIMIT_TOTAL,
+        CARD_LIMIT_REMAINING,
+        PROCESS_CODE,
+        SOURCE_FILENAME
+    )
+    FROM (
+        SELECT
+            $1:MERCHANT_NAME,
+            $1:MERCHANT_STATE,
+            $1:MERCHANT_CITY,
+            $1:RISK_SCORE,
+            $1:BLOCK_IND,
+            $1:TRANSACTION_ID,
+            $1:BANK,
+            $1:CARD_NUMBER,
+            $1:AUTHORIZATION_CODE,
+            $1:ACQUIRER_ID,
+            $1:CARD_BRAND,
+            $1:CURRENCY_CD,
+            $1:TRANSACTION_COUNTRY_CD,
+            $1:MERCHANT_ID,
+            $1:REASON_CODE,
+            $1:POS_NUMBER,
+            $1:MERCHANT_CATEGORY_CODE,
+            $1:TRN_DT,
+            $1:TRANSACTION_TYPE,
+            $1:TRANSACTION_AMOUNT,
+            $1:CARD_LIMIT_TOTAL,
+            $1:CARD_LIMIT_REMAINING,
+            $1:PROCESS_CODE,
+            METADATA$FILENAME
+        FROM @STAGE_S3_TRANSACTIONS
+    )
+    ON_ERROR = 'CONTINUE';
