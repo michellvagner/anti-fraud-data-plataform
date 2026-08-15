@@ -24,6 +24,7 @@ data/
 *.tfstate.*
 crash.log
 crash.*.log
+terraform.tfvars
 
 # VS Code / sistema
 .vscode/
