@@ -57,10 +57,7 @@ Cada CSV é gravado como Parquet em `temp/` (`df.write_parquet`), enviado ao S3 
 
 ## 5. Quantidade de arquivos e registros processados
 
-**Não foi possível identificar no projeto.** A pasta `data/` consta do `.gitignore` e não existe no repositório — não há arquivos CSV nem Parquet versionados em nenhum commit do histórico. Portanto, quantidade de arquivos, total de registros e volume de dados **não foram identificados**; o código apenas imprime esses valores em tempo de execução (`len(csv_files)` e `df.height`).
-
-- Formato original: CSV delimitado por `;`.
-- Formato final de armazenamento: Parquet no S3 e tabelas nativas no Snowflake (Bronze, Silver e Gold).
+**Não foi possível identificar no projeto.** A pasta `data/` consta do `.gitignore` e não existe no repositório — não há CSV nem Parquet versionados em nenhum commit. Portanto, quantidade de arquivos, total de registros e volume de dados **não foram identificados**; o código apenas imprime esses valores em tempo de execução (`len(csv_files)` e `df.height`). Formato original: CSV delimitado por `;`; formato final de armazenamento: Parquet no S3 e tabelas nativas no Snowflake (Bronze, Silver e Gold).
 
 ## 6. Armazenamento dos arquivos no AWS S3
 
@@ -86,11 +83,11 @@ O **Stage externo** aponta para `s3://anti-fraud-data-platform-vagner/raw/transa
 
 O **Snowpipe** (`AUTO_INGEST = TRUE`) executa `COPY INTO BRONZE_TRANSACTIONS FROM (SELECT $1:<coluna>, …, METADATA$FILENAME FROM @STAGE_S3_TRANSACTIONS)`, mapeando explicitamente as 23 colunas do Parquet e usando `ON_ERROR = 'CONTINUE'`.
 
-Na orquestração, `setup_snowflake()` executa os scripts 0–5, obtém o ARN do SQS, configura a notificação no S3 e então executa 6–8. A task Gold é retomada antes da Silver, respeitando a regra de que a task filha (`AFTER`) precisa estar ativa antes da raiz.
+Na orquestração, `setup_snowflake()` executa os scripts 0–5, obtém o ARN do SQS, configura a notificação no S3 e então executa 6–8 — a task Gold é retomada antes da Silver, pois a task filha (`AFTER`) precisa estar ativa antes da raiz.
 
 ## 8. Camada Bronze
 
-`RAW.BRONZE_TRANSACTIONS` recebe, sem transformação, o conteúdo dos Parquet do S3. Suas 23 colunas de negócio:
+`RAW.BRONZE_TRANSACTIONS` recebe, sem transformação, o conteúdo dos Parquet do S3. Colunas de negócio (23):
 
 - **Transação:** `TRANSACTION_ID`, `AUTHORIZATION_CODE`, `PROCESS_CODE`, `TRANSACTION_TYPE`, `REASON_CODE`, `TRN_DT`
 - **Cartão/emissor:** `BANK`, `CARD_NUMBER`, `CARD_BRAND`, `CARD_LIMIT_TOTAL`, `CARD_LIMIT_REMAINING`
@@ -103,9 +100,7 @@ Metadados de rastreabilidade acrescentados na ingestão:
 - `SOURCE_FILENAME` — preenchido com `METADATA$FILENAME`, permite rastrear cada registro até o arquivo Parquet de origem (auditoria e reprocessamento).
 - `INGESTION_TS` — `TIMESTAMP_LTZ DEFAULT CURRENT_TIMESTAMP()`, separa a data do evento de negócio (`TRN_DT`) da data de entrada no data warehouse, permitindo controle de latência e recorte de cargas.
 
-Ambos são propagados até a Silver, preservando a linhagem do dado.
-
-O campo `TRN_DT` é armazenado como **VARCHAR** na Bronze: a data/hora chega como texto no formato original do arquivo, sem cast na ingestão, evitando que registros fora do padrão façam a carga falhar. A conversão ocorre apenas na Silver (seção 10).
+Ambos são propagados até a Silver, preservando a linhagem do dado. O campo `TRN_DT` é armazenado como **VARCHAR** na Bronze: a data/hora chega como texto no formato original do arquivo, sem cast na ingestão, evitando que registros fora do padrão façam a carga falhar. A conversão ocorre apenas na Silver (seção 10).
 
 ## 9. Processamento incremental com Stream e Tasks
 
@@ -114,7 +109,7 @@ CREATE OR REPLACE STREAM ANTI_FRAUD_DB.RAW.BRONZE_TRANSACTIONS_STREAM
     ON TABLE RAW.BRONZE_TRANSACTIONS APPEND_ONLY = TRUE;
 ```
 
-O Stream funciona como um marcador de posição (offset) sobre a Bronze, expondo apenas as linhas inseridas desde a última leitura. Como o pipeline só faz inserts, `APPEND_ONLY = TRUE` é suficiente. Ao ser consumido dentro do `INSERT` da Task, o offset avança automaticamente, garantindo que cada registro seja processado uma única vez, sem controle manual de datas ou `MERGE` por chave.
+O Stream funciona como marcador de posição (offset) sobre a Bronze, expondo apenas as linhas inseridas desde a última leitura; como o pipeline só faz inserts, `APPEND_ONLY = TRUE` é suficiente. Ao ser consumido dentro do `INSERT` da Task, o offset avança automaticamente, garantindo que cada registro seja processado uma única vez, sem controle manual de datas ou `MERGE` por chave.
 
 As Tasks automatizam a execução: `SILVER_TRANSACTIONS_TASK` é a task raiz (warehouse `lab_wh`, `SCHEDULE = '1 MINUTE'`, condicionada por `WHEN SYSTEM$STREAM_HAS_DATA(...)`, de modo que não consome crédito quando não há dados novos), e `GOLD_TRANSACTIONS_TASK` é declarada com `AFTER RAW.SILVER_TRANSACTIONS_TASK`, formando um DAG que só executa após o sucesso da Silver. Após o `RESUME` (script 8) o pipeline opera de ponta a ponta sem intervenção; o script 9 suspende pipe e tasks.
 
@@ -122,8 +117,9 @@ As Tasks automatizam a execução: `SILVER_TRANSACTIONS_TASK` é a task raiz (wa
 
 Definidas em `sql/6_create_task_silver_transactions_task.sql`, que faz `INSERT INTO RAW.SILVER_TRANSACTIONS SELECT ... FROM RAW.BRONZE_TRANSACTIONS_STREAM`. Tratamentos efetivamente presentes:
 
-1. **Seleção e reordenação de colunas** — as 23 colunas de negócio mais `SOURCE_FILENAME` e `INGESTION_TS` são reorganizadas em ordem analítica; nenhuma coluna é descartada.
-2. **Conversão de `TRN_DT` de VARCHAR para TIMESTAMP_NTZ:**
+**(1) Seleção e reordenação de colunas** — as 23 colunas de negócio mais `SOURCE_FILENAME` e `INGESTION_TS` são reorganizadas em ordem analítica; nenhuma coluna é descartada.
+
+**(2) Conversão de `TRN_DT` de VARCHAR para TIMESTAMP_NTZ:**
 
 ```sql
 TO_TIMESTAMP_NTZ(
@@ -131,16 +127,15 @@ TO_TIMESTAMP_NTZ(
 ) AS TRN_DT
 ```
 
-   O regex corrige o formato de origem, em que hora e minuto vêm colados (`AAAA-MM-DD HHMM:SS`): captura data (`\1`), hora (`\2`) e minuto (`\3`) e reescreve como `AAAA-MM-DD HH:MM:SS`; em seguida `TO_TIMESTAMP_NTZ` faz o cast para timestamp sem fuso. Valores já no formato padrão não casam o padrão e são convertidos diretamente.
-3. **Conversão implícita de `INGESTION_TS`** — de `TIMESTAMP_LTZ` (Bronze) para `TIMESTAMP_NTZ` (Silver), pela definição da tabela de destino.
+O regex corrige o formato de origem, em que hora e minuto vêm colados (`AAAA-MM-DD HHMM:SS`): captura data (`\1`), hora (`\2`) e minuto (`\3`) e reescreve como `AAAA-MM-DD HH:MM:SS`; em seguida `TO_TIMESTAMP_NTZ` faz o cast para timestamp sem fuso. Valores já no formato padrão não casam o regex e são convertidos diretamente.
+
+**(3) Conversão implícita de `INGESTION_TS`** — de `TIMESTAMP_LTZ` (Bronze) para `TIMESTAMP_NTZ` (Silver), pela definição da tabela de destino.
 
 **Não implementados** (verificado no código): filtros (`WHERE`), deduplicação, tratamento de nulos, padronização de texto e validação de valores. A carga é integral e incremental, limitada ao conteúdo do Stream.
 
 ## 11. Camada Gold
 
-Definida em `sql/7_create_task_gold_transactions.sql`, que executa `CREATE OR REPLACE TABLE RAW.GOLD_TRANSACTIONS AS SELECT ... FROM RAW.SILVER_TRANSACTIONS` — a tabela é reconstruída integralmente a cada execução a partir de toda a Silver.
-
-O objetivo é entregar uma visão analítica agregada por `BANK` e mês (`TO_VARCHAR(TRN_DT, 'YYYY-MM')`), com `GROUP BY ALL` e ordenação por banco e período. Métricas produzidas:
+Definida em `sql/7_create_task_gold_transactions.sql`, que executa `CREATE OR REPLACE TABLE RAW.GOLD_TRANSACTIONS AS SELECT ... FROM RAW.SILVER_TRANSACTIONS` — a tabela é reconstruída integralmente a cada execução. O objetivo é entregar uma visão analítica agregada por `BANK` e mês (`TO_VARCHAR(TRN_DT, 'YYYY-MM')`), com `GROUP BY ALL` e ordenação por banco e período. Métricas produzidas:
 
 | Coluna | Regra |
 |---|---|
@@ -159,4 +154,4 @@ A única regra de negócio do projeto é a definição de transação aprovada (
 
 `src/main.py` orquestra a execução em quatro etapas: (1) `terraform apply` provisiona bucket e prefixos; (2) `setup_snowflake()` cria os objetos no Snowflake e configura a integração S3 → SQS → Snowpipe; (3) `upload_transactions()` envia os CSVs para `landing/transactions/`; (4) `process_transactions()` converte para Parquet e envia para `raw/transactions/`, disparando o restante do fluxo. A partir daí Snowpipe, Stream e Tasks executam automaticamente até a Gold. O Terraform aparece apenas como recurso de provisionamento da infraestrutura AWS, sem participação na lógica do pipeline; a notificação S3 → SQS é feita em Python por depender do ARN gerado dinamicamente pelo Snowpipe.
 
-O projeto entrega um pipeline funcional de ponta a ponta em arquitetura de medalhão no Snowflake, com ingestão orientada a eventos, processamento incremental via Stream `APPEND_ONLY` e automação por Tasks encadeadas, com responsabilidades bem separadas entre preparação (Python), armazenamento/gatilho (S3) e camadas Bronze, Silver e Gold. Registram-se, por transparência, os pontos não identificados: quantidade de arquivos, de registros e volume de dados (arquivos de origem não versionados) e ausência, no código, de tratamento de nulos, deduplicação ou filtros de qualidade.
+O projeto entrega um pipeline funcional de ponta a ponta em arquitetura de medalhão no Snowflake, com ingestão orientada a eventos, processamento incremental via Stream `APPEND_ONLY` e automação por Tasks encadeadas, separando claramente preparação (Python), armazenamento/gatilho (S3) e as camadas Bronze, Silver e Gold. Registram-se, por transparência, os pontos não identificados: quantidade de arquivos, de registros e volume de dados (origem não versionada) e ausência, no código, de tratamento de nulos, deduplicação ou filtros de qualidade.
