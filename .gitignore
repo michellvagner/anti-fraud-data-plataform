@@ -12,7 +12,6 @@ src/__pycache__/  # se existir futuramente
 
 # Dados locais
 data/
-src/anti_fraud_data_plataform/
 
 # Variáveis e credenciais
 .env
