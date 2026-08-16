@@ -67,6 +67,46 @@ uv run src/destroy_infrastructure.py
 > ⚠️ **Importante:** após finalizar os testes ou demonstrações, recomenda-se destruir os recursos criados para evitar consumo desnecessário de infraestrutura.
 
 ---
+## Parte 0 - Verificar e instalar o uv
+
+1. Antes de iniciar o projeto verificar se tem instalado o `uv`
+
+```bash
+    uv --version
+```
+
+Se o comando retornar uma versão, como:
+
+```text
+    uv 0.x.x
+```
+
+### Windows
+
+1. Caso o Terraform não esteja instalado, execute:
+
+```bash
+    powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+Após a instalação, feche e abra novamente o terminal e verifique:
+
+```bash
+    uv --version
+```
+
+Deve aparecer algo parecido com:
+
+```text
+    uv 0.x.x
+```
+
+### Linux
+
+1. Caso o Terraform não esteja instalado, execute:
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
 
 ## Parte 1 - Verificar e instalar o Terraform
 
@@ -84,7 +124,7 @@ Se o comando retornar uma versão, como:
 
 Não é necessário realizar nenhuma instalação adicional.
 
-# Windows
+### Windows
 
 1. Caso o Terraform não esteja instalado, execute:
 
@@ -104,13 +144,26 @@ Deve aparecer algo parecido com:
     Terraform v1.x.x
 ```
 
-# Linux
+### Linux
 
 1. Caso o Terraform não esteja instalado, a instalação pode variar de acordo com a distribuição utilizada.
 
 ```bash
-    sudo apt update
-    sudo apt install terraform
+#1. Instalar dependencias
+sudo apt update
+sudo apt install -y gnupg software-properties-common curl
+
+#2. Instalar chaves Hashcorp
+curl -fsSL https://apt.releases.hashicorp.com/gpg | \
+sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+
+#3. Adicionar repositorio
+echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | \
+sudo tee /etc/apt/sources.list.d/hashicorp.list
+
+#4. Instalar terraform
+sudo apt update
+sudo apt install terraform
 ```
 
 Após a instalação, feche e abra novamente o terminal e verifique:
@@ -130,7 +183,23 @@ Deve aparecer algo parecido com:
 ## Parte 2 - Download do dataset
 
 1. Para baixar o dataset acesse: [Dataset Transações](https://www.kaggle.com/datasets/vagnermichaell/card-credit-datasets-ready)
-2. Descompacte o arquivo e coloque na pasta data dentro do projeto.
+2. Descompacte o arquivo.
+3. Crie uma pasta `data` dentro do projeto `anti-fraud-data-plataform` e coloque os arquivos csv para dentro dessa pasta.
+
+### Caso esteja executando pelo WSL
+
+Acesse a pasta `anti-fraud-data-plataform` do projeto clonado anteriormente e crie a pasta `data`:
+
+```bash
+mkdir -p data
+```
+
+Em seguida, copie o conteúdo da pasta card_credit_datasets_ready, localizada na pasta Downloads do Windows, para a pasta data do projeto:
+
+```bash
+# Substitua o caminho pelo caminho onde esta extraido a pasta com os csvs
+cp -r "/mnt/c/<CAMINHO ONDE ESTA O ARQUIVO>/card_credit_datasets_ready/"* ./data/
+```
 
 ## Parte 3 - Configuração da AWS (AWS Academy)
 
@@ -144,7 +213,7 @@ O projeto usa credenciais temporárias do laboratório da AWS Academy.
 6. Abra as credenciais temporárias (AWS Details / CLI).
 7. Copie as credenciais.
 
-# Windows
+### Windows
 
 1. No terminal do VSCODE digite:
 
@@ -153,7 +222,7 @@ O projeto usa credenciais temporárias do laboratório da AWS Academy.
 ```
 2. Cole no arquivo de credenciais local aberto e salve (`Ctrl+S` ou `Cmd+S`).
 
-# Linux
+### Linux
 
 1. No terminal do VSCODE digite:
 
@@ -175,6 +244,8 @@ aws_session_token = SEU_SESSION_TOKEN
 aws s3 ls
 ```
 
+Se nao der nenhum erro, significa que está funcionando, você está conectado na AWS
+
 O perfil `default` é lido por `src/aws_credentials.py` e injetado no stage do Snowflake (`sql/1_stage_s3_transactions.sql`).
 
 > ⚠️ As credenciais da AWS Academy são **temporárias**. Se expirarem, inicie o laboratório novamente e atualize o arquivo de credenciais. Nunca coloque chaves reais no repositório.
@@ -187,12 +258,12 @@ O perfil `default` é lido por `src/aws_credentials.py` e injetado no stage do S
 
 ```sql
 SELECT 
-    CONCAT(CURRENT_ORGANIZATION_NAME(), '-' , CURRENT_ACCOUNT_NAME()) AS SNOWFLAKE_ACCOUNT,
-    CURRENT_USER() AS SNOWFLAKE_USER;
+    CURRENT_USER() AS SNOWFLAKE_USER,
+    CONCAT(CURRENT_ORGANIZATION_NAME(), '-' , CURRENT_ACCOUNT_NAME()) AS SNOWFLAKE_ACCOUNT;
 
 ```
 
-2. Crie um arquivo `.env` na raiz do projeto (não existe `.env.example` no repositório):
+2. Crie um arquivo `.env` na raiz do projeto (não existe `.env` no repositório):
 
 ```env
 SNOWFLAKE_USER=SEU_USUARIO
@@ -242,7 +313,7 @@ uv run src/main.py
 uv run src/destroy_infrastructure.py
 ```
 
-No repositório tem um atalho: basta executar `run.bat` (que roda `uv run .\src\main.py`).
+Para Windows o repositório tem um atalho: basta executar `run.bat` (que roda `uv run .\src\main.py`).
 
 Sequência recomendada:
 
