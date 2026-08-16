@@ -98,6 +98,15 @@ O perfil `default` é lido por `src/aws_credentials.py` e injetado no stage do S
 
 ## ❄️ Configuração do Snowflake
 
+Realize a seguinte consulta no Snowflake:
+
+```sql
+SELECT 
+    CONCAT(CURRENT_ORGANIZATION_NAME(), '-' , CURRENT_ACCOUNT_NAME()) AS SNOWFLAKE_ACCOUNT,
+    CURRENT_USER() AS SNOWFLAKE_USER;
+
+```
+
 Crie um arquivo `.env` na raiz do projeto (não existe `.env.example` no repositório):
 
 ```env
@@ -148,10 +157,16 @@ O que o `src/main.py` faz, em ordem:
 [4/4] process_transactions()             → CSV → Parquet → raw/transactions/
 ```
 
-Testes:
+## 🧹 Destruição da infraestrutura
 
-```bash
-uv run pytest
+Ao final da execução, o script perguntará se você deseja destruir toda a infraestrutura criada.
+
+Caso ainda queira utilizar o ambiente para testes ou demonstrações, basta responder no ou manter a infraestrutura ativa.
+
+Quando finalizar todos os testes, execute novamente o processo de destruição e responda:
+
+```text
+    yes
 ```
 
 ---
