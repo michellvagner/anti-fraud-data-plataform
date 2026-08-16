@@ -4,7 +4,7 @@ import boto3
 def configure_s3_notification(sqs_arn: str):
     s3 = boto3.client("s3")
 
-    bucket_name = "anti-fraud-data-platform-vagner"
+    bucket_name = "anti-fraud-data-platform"
 
     s3.put_bucket_notification_configuration(
         Bucket=bucket_name,

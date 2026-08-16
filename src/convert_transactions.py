@@ -5,7 +5,7 @@ import boto3
 ## %%
 
 DATA_PATH = Path("data")
-BUCKET_NAME = "anti-fraud-data-platform-vagner"
+BUCKET_NAME = "anti-fraud-data-platform"
 S3_PREFIX = "raw/transactions/"
 TEMP_PATH = Path("temp")
 TEMP_PATH.mkdir(exist_ok=True)
