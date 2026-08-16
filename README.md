@@ -1,4 +1,4 @@
-# 🛡️ Anti-Fraud Data Platform
+# Anti-Fraud Data Platform
 
 Projeto **acadêmico** de engenharia de dados que demonstra um pipeline de transações de cartão com **Python + AWS S3 + Snowflake**, usando **arquitetura em camadas (Bronze → Silver → Gold)** e **processamento incremental** com Streams e Tasks.
 
@@ -6,7 +6,7 @@ Projeto **acadêmico** de engenharia de dados que demonstra um pipeline de trans
 
 ---
 
-## 🔎 Arquitetura
+## Arquitetura
 
 ```mermaid
 flowchart TD
@@ -62,13 +62,16 @@ uv run src/main.py
 uv run src/destroy_infrastructure.py
 ```
 
-**Pausar/retomar** o Pipe e as Tasks sem destruir tudo: `sql/9_suspend_pipe_tasks.sql` e `sql/8_resume_pipe_tasks.sql`.
-
 > ⚠️ **Importante:** após finalizar os testes ou demonstrações, recomenda-se destruir os recursos criados para evitar consumo desnecessário de infraestrutura.
 
 ---
 
-## ☁️ Configuração da AWS (AWS Academy)
+## 01 - Download do dataset
+
+Para baixar o dataset acesse: [Dataset Transações](https://www.kaggle.com/datasets/vagnermichaell/card-credit-datasets-ready)
+Descompacte o arquivo e coloque na pasta data dentro do projeto.
+
+## 02 - Configuração da AWS (AWS Academy)
 
 O projeto usa credenciais temporárias do laboratório da AWS Academy.
 
@@ -96,7 +99,16 @@ O perfil `default` é lido por `src/aws_credentials.py` e injetado no stage do S
 
 ---
 
-## ❄️ Configuração do Snowflake
+## 03 - Configuração do Snowflake
+
+Realize a seguinte consulta no Snowflake para descobrir sua SNOWFLAKE_ACCOUNT e SNOWFLAKE_USER:
+
+```sql
+SELECT 
+    CONCAT(CURRENT_ORGANIZATION_NAME(), '-' , CURRENT_ACCOUNT_NAME()) AS SNOWFLAKE_ACCOUNT,
+    CURRENT_USER() AS SNOWFLAKE_USER;
+
+```
 
 Crie um arquivo `.env` na raiz do projeto (não existe `.env.example` no repositório):
 
@@ -148,10 +160,24 @@ O que o `src/main.py` faz, em ordem:
 [4/4] process_transactions()             → CSV → Parquet → raw/transactions/
 ```
 
-Testes:
+> ⚠️ **Importante:** após finalizar os testes ou demonstrações, recomenda-se destruir os recursos criados para evitar consumo desnecessário de infraestrutura.
+
+## 🧹 Destruição da infraestrutura
+
+Ao final da execução, o script perguntará se você deseja destruir toda a infraestrutura criada.
+
+Caso ainda queira utilizar o ambiente para testes ou demonstrações, basta responder no ou manter a infraestrutura ativa.
+
+Quando finalizar todos os testes, execute novamente o processo de destruição e responda:
+
+```text
+    yes
+```
+
+Caso você tenha fechado o bat, basta digitar dentro da pasta do projeto: 
 
 ```bash
-uv run pytest
+    uv run .\src\destroy_infrastructure.py
 ```
 
 ---
