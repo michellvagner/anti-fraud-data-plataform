@@ -1,3 +1,5 @@
+![Anti-Fraud Data Platform](img/capa.png)
+
 # Anti-Fraud Data Platform
 
 Projeto **acadêmico** de engenharia de dados que demonstra um pipeline de transações de cartão com **Python + AWS S3 + Snowflake**, usando **arquitetura em camadas (Bronze → Silver → Gold)** e **processamento incremental** com Streams e Tasks.
