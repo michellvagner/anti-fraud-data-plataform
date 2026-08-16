@@ -39,7 +39,7 @@ flowchart TD
 
 ---
 
-## ⚡ Filosofia: criar, testar e destruir
+## Filosofia: criar, testar e destruir
 
 ```mermaid
 flowchart LR
@@ -68,25 +68,99 @@ uv run src/destroy_infrastructure.py
 
 ---
 
-## 01 - Download do dataset
+## Parte 1 - Verificar e instalar o Terraform
 
-Para baixar o dataset acesse: [Dataset Transações](https://www.kaggle.com/datasets/vagnermichaell/card-credit-datasets-ready)
-Descompacte o arquivo e coloque na pasta data dentro do projeto.
+1. Antes de iniciar o projeto, verifique se o Terraform já está instalado:
 
-## 02 - Configuração da AWS (AWS Academy)
+```bash
+    terraform --version
+```
+
+Se o comando retornar uma versão, como:
+
+```text
+    Terraform v1.x.x
+```
+
+Não é necessário realizar nenhuma instalação adicional.
+
+# Windows
+
+1. Caso o Terraform não esteja instalado, execute:
+
+```bash
+    winget install Hashicorp.Terraform
+```
+
+Após a instalação, feche e abra novamente o terminal e verifique:
+
+```bash
+    terraform --version
+```
+
+Deve aparecer algo parecido com:
+
+```text
+    Terraform v1.x.x
+```
+
+# Linux
+
+1. Caso o Terraform não esteja instalado, a instalação pode variar de acordo com a distribuição utilizada.
+
+```bash
+    sudo apt update
+    sudo apt install terraform
+```
+
+Após a instalação, feche e abra novamente o terminal e verifique:
+
+```bash
+    terraform --version
+```
+
+Deve aparecer algo parecido com:
+
+```text
+    Terraform v1.x.x
+```
+
+**Observação: dependendo da distribuição Linux, o comando de instalação pode variar.**
+
+## Parte 2 - Download do dataset
+
+1. Para baixar o dataset acesse: [Dataset Transações](https://www.kaggle.com/datasets/vagnermichaell/card-credit-datasets-ready)
+2. Descompacte o arquivo e coloque na pasta data dentro do projeto.
+
+## Parte 3 - Configuração da AWS (AWS Academy)
 
 O projeto usa credenciais temporárias do laboratório da AWS Academy.
 
 1. Acesse o [AWS Academy Login](https://www.awsacademy.com/vforcesite/LMS_Login).
-2. Faça login com suas credenciais.
+2. Faça login com suas credenciais fornecidas pela FIAP.
 3. Abra o laboratório AWS disponibilizado.
 4. Inicie o laboratório, caso não esteja ativo.
 5. Aguarde o ambiente AWS ficar disponível.
 6. Abra as credenciais temporárias (AWS Details / CLI).
 7. Copie as credenciais.
-8. Cole no arquivo de credenciais local.
 
-Arquivo: `~/.aws/credentials` (Windows: `C:\Users\<SEU_USUARIO>\.aws\credentials`)
+# Windows
+
+1. No terminal do VSCODE digite:
+
+```bash
+    code $HOME\.aws\credentials
+```
+2. Cole no arquivo de credenciais local aberto e salve (`Ctrl+S` ou `Cmd+S`).
+
+# Linux
+
+1. No terminal do VSCODE digite:
+
+```bash
+    code ~/.aws/credentials
+```
+2. Cole no arquivo de credenciais local aberto e salve (`Ctrl+S` ou `Cmd+S`).
 
 ```ini
 [default]
@@ -95,15 +169,21 @@ aws_secret_access_key = SUA_SECRET_KEY
 aws_session_token = SEU_SESSION_TOKEN
 ```
 
+3. Teste a configuração:
+
+```bash
+aws s3 ls
+```
+
 O perfil `default` é lido por `src/aws_credentials.py` e injetado no stage do Snowflake (`sql/1_stage_s3_transactions.sql`).
 
 > ⚠️ As credenciais da AWS Academy são **temporárias**. Se expirarem, inicie o laboratório novamente e atualize o arquivo de credenciais. Nunca coloque chaves reais no repositório.
 
 ---
 
-## 03 - Configuração do Snowflake
+## Parte 4 - Configuração do Snowflake
 
-Realize a seguinte consulta no Snowflake para descobrir sua SNOWFLAKE_ACCOUNT e SNOWFLAKE_USER:
+1. Realize a seguinte consulta no Snowflake para descobrir sua SNOWFLAKE_ACCOUNT e SNOWFLAKE_USER:
 
 ```sql
 SELECT 
@@ -112,7 +192,7 @@ SELECT
 
 ```
 
-Crie um arquivo `.env` na raiz do projeto (não existe `.env.example` no repositório):
+2. Crie um arquivo `.env` na raiz do projeto (não existe `.env.example` no repositório):
 
 ```env
 SNOWFLAKE_USER=SEU_USUARIO
@@ -126,12 +206,33 @@ A conexão (`src/snowflake_connection.py`) usa ainda, fixos no código: warehous
 
 ---
 
-## 🚀 Como executar
+## Parte 5 - Como executar
 
 Pré-requisitos: Python 3.11, [uv](https://docs.astral.sh/uv/) e Terraform instalados.
 
+1. Pelo Terminal navegue até a pasta `infrastructure` com o comando:
+
+```bash
+cd <CAMINHO_DO_REPOSITORIO>/anti-fraud-data-plataform/infrastructure
+```
+
+2. Digite:
+
+```bash
+    terraform init
+```
+
+3. Aguarde o término, volte para a pasta principal do repositorio com:
+
+```bash
+cd <CAMINHO_DO_REPOSITORIO>/anti-fraud-data-plataform
+```
+
+4. Depois execute o comando abaixo:
+
 ```bash
 # 1. instalar dependências
+# Importante: estar na raiz do diretório antes de executar
 uv sync
 
 # 2. criar infra + executar o pipeline
@@ -141,12 +242,13 @@ uv run src/main.py
 uv run src/destroy_infrastructure.py
 ```
 
-No Windows há um atalho: basta executar `run.bat` (que roda `uv run .\src\main.py`).
+No repositório tem um atalho: basta executar `run.bat` (que roda `uv run .\src\main.py`).
 
 Sequência recomendada:
 
 1. Configurar credenciais AWS (`~/.aws/credentials`)
 2. Configurar o `.env` do Snowflake
+2. Instalar e Configurar o `Terraform`
 3. Instalar dependências com `uv sync`
 4. Colocar os CSVs de transações (separador `;`) na pasta `data/`
 5. Executar o pipeline: `uv run src/main.py`
@@ -164,7 +266,7 @@ O que o `src/main.py` faz, em ordem:
 
 > ⚠️ **Importante:** após finalizar os testes ou demonstrações, recomenda-se destruir os recursos criados para evitar consumo desnecessário de infraestrutura.
 
-## 🧹 Destruição da infraestrutura
+## Parte 6 - Destruição da infraestrutura
 
 Ao final da execução, o script perguntará se você deseja destruir toda a infraestrutura criada.
 

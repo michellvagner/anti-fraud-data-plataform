@@ -3,7 +3,7 @@ import boto3
 
 # %%
 
-BUCKET_NAME = "anti-fraud-data-platform-vagner"
+BUCKET_NAME = "anti-fraud-data-platform"
 DATA_PATH = Path("data")
 S3_PREFIX = "landing/transactions/"
 
