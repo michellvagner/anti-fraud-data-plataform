@@ -52,10 +52,11 @@ def execute_sql_files(conn, start_file, end_file):
             template = Template(sql)
             sql = template.render(**get_aws_credentials())
 
-        _.execute("USE DATABASE ANTI_FRAUD_DB")
-        _.execute("USE SCHEMA RAW")  
-
         cursors = conn.execute_string(sql)
+
+        if sql_file.name != "0_create_db_schema.sql":
+            _.execute("USE DATABASE ANTI_FRAUD_DB")
+            _.execute("USE SCHEMA RAW")  
 
         for cursor in cursors:
             cursor.close()
