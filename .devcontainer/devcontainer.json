@@ -32,5 +32,5 @@
     }
   },
 
-  "postCreateCommand": "mkdir -p data && curl -LsSf https://astral.sh/uv/install.sh | sh && export PATH=$HOME/.local/bin:$PATH && uv sync"
+  "postCreateCommand": "mkdir -p data && if [ ! -f .env ]; then cp .env.example .env; fi && curl -LsSf https://astral.sh/uv/install.sh | sh && export PATH=$HOME/.local/bin:$PATH && uv sync"
 }
