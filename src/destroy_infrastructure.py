@@ -27,8 +27,10 @@ def destroy_all():
     )
 
     try:
+        conn.execute_string("""ALTER PIPE RAW.BRONZE_TRANSACTIONS_PIPE REFRESH;""")
         conn.execute_string(queries)
-
+        conn.close()
+        
         print("🗑️   Snowflake infrastructure removida.")
 
     finally:
