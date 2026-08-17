@@ -42,12 +42,6 @@ def main():
     job_run_id = response["JobRunId"]
     print(f"Glue Job iniciado: {job_run_id}")
 
-    conn = get_connection()
-    conn.execute_string("""
-                            
-                            ALTER PIPE ANTI_FRAUD_DB.RAW.BRONZE_TRANSACTIONS_PIPE REFRESH;""")
-    conn.close()
-
     print("\n" + "=" * 50)
     print("PIPELINE FINALIZADO COM SUCESSO!")
     print("=" * 50)
