@@ -1,7 +1,16 @@
+# %%
 import subprocess
 from pathlib import Path
 from snowflake_connection import get_connection
+# %%
 
+sql_files = Path(__file__).parent.parent / "sql"
+
+# %%
+with open(sql_files / "9_suspend_drop_pipe_tasks.sql", "r", encoding="utf-8") as suspend_drop_pipe_tasks:
+    queries = suspend_drop_pipe_tasks.read()
+
+# %%
 
 def destroy_all():
     conn = get_connection()
@@ -18,9 +27,7 @@ def destroy_all():
     )
 
     try:
-        conn.execute_string("""
-            DROP DATABASE IF EXISTS ANTI_FRAUD_DB;
-        """)
+        conn.execute_string(queries)
 
         print("🗑️   Snowflake infrastructure removida.")
 

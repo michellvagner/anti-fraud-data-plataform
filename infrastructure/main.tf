@@ -36,3 +36,5 @@ resource "aws_s3_object" "raw_transactions" {
   bucket = aws_s3_bucket.data_lake.id
   key    = "raw/transactions/"
 }
+
+data "aws_caller_identity" "current" {}
