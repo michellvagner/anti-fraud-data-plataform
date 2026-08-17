@@ -66,19 +66,37 @@ uv run src/destroy_infrastructure.py
 
 > ⚠️ **Importante:** após finalizar os testes ou demonstrações, recomenda-se destruir os recursos criados para evitar consumo desnecessário de infraestrutura.
 
+## Observacão
+
+Este projeto foi configurado para funcionar em diferentes ambientes, permitindo sua execução tanto diretamente no **Windows** quanto através de um **Dev Container**.
+
+| Ambiente | Descrição |
+|---|---|
+| **Windows** | Execução local utilizando as ferramentas instaladas no sistema operacional. |
+| **Dev Container** | Execução em um ambiente isolado e padronizado utilizando Docker e VS Code. |
+
+Escolha abaixo o ambiente desejado para visualizar as instruções de execução.
+
+- [Computador local](#parte-0---verificar-e-instalar-o-uv)
+- [Se for iniciar a partir do Dev Container clique aqui](#parte-2---download-do-dataset)
+
 ---
+
+
+## Executando no computador local
+
 ## Parte 0 - Verificar e instalar o uv
 
 1. Antes de iniciar o projeto verificar se tem instalado o `uv`
 
 ```bash
-    uv --version
+uv --version
 ```
 
 Se o comando retornar uma versão, como:
 
 ```text
-    uv 0.x.x
+uv 0.x.x
 ```
 
 ### Windows
@@ -86,19 +104,19 @@ Se o comando retornar uma versão, como:
 1. Caso o Terraform não esteja instalado, execute:
 
 ```bash
-    powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
 Após a instalação, feche e abra novamente o terminal e verifique:
 
 ```bash
-    uv --version
+uv --version
 ```
 
 Deve aparecer algo parecido com:
 
 ```text
-    uv 0.x.x
+uv 0.x.x
 ```
 
 ### Linux
@@ -113,13 +131,13 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 1. Antes de iniciar o projeto, verifique se o Terraform já está instalado:
 
 ```bash
-    terraform --version
+terraform --version
 ```
 
 Se o comando retornar uma versão, como:
 
 ```text
-    Terraform v1.x.x
+Terraform v1.x.x
 ```
 
 Não é necessário realizar nenhuma instalação adicional.
@@ -129,19 +147,19 @@ Não é necessário realizar nenhuma instalação adicional.
 1. Caso o Terraform não esteja instalado, execute:
 
 ```bash
-    winget install Hashicorp.Terraform
+winget install Hashicorp.Terraform
 ```
 
 Após a instalação, feche e abra novamente o terminal e verifique:
 
 ```bash
-    terraform --version
+terraform --version
 ```
 
 Deve aparecer algo parecido com:
 
 ```text
-    Terraform v1.x.x
+Terraform v1.x.x
 ```
 
 ### Linux
@@ -169,13 +187,13 @@ sudo apt install terraform
 Após a instalação, feche e abra novamente o terminal e verifique:
 
 ```bash
-    terraform --version
+terraform --version
 ```
 
 Deve aparecer algo parecido com:
 
 ```text
-    Terraform v1.x.x
+Terraform v1.x.x
 ```
 
 **Observação: dependendo da distribuição Linux, o comando de instalação pode variar.**
@@ -218,7 +236,7 @@ O projeto usa credenciais temporárias do laboratório da AWS Academy.
 1. No terminal do VSCODE digite:
 
 ```bash
-    code $HOME\.aws\credentials
+code $HOME\.aws\credentials
 ```
 2. Cole no arquivo de credenciais local aberto e salve (`Ctrl+S` ou `Cmd+S`).
 
@@ -227,7 +245,7 @@ O projeto usa credenciais temporárias do laboratório da AWS Academy.
 1. No terminal do VSCODE digite:
 
 ```bash
-    code ~/.aws/credentials
+code ~/.aws/credentials
 ```
 2. Cole no arquivo de credenciais local aberto e salve (`Ctrl+S` ou `Cmd+S`).
 
@@ -290,7 +308,7 @@ cd <CAMINHO_DO_REPOSITORIO>/anti-fraud-data-plataform/infrastructure
 2. Digite:
 
 ```bash
-    terraform init
+terraform init
 ```
 
 3. Aguarde o término, volte para a pasta principal do repositorio com:
@@ -346,16 +364,14 @@ Caso ainda queira utilizar o ambiente para testes ou demonstrações, basta resp
 Quando finalizar todos os testes, execute novamente o processo de destruição e responda:
 
 ```text
-    yes
+yes
 ```
 
 Caso você tenha fechado o bat, basta digitar dentro da pasta do projeto: 
 
 ```bash
-    uv run .\src\destroy_infrastructure.py
+uv run .\src\destroy_infrastructure.py
 ```
-
----
 
 ## 🧰 Tecnologias
 
@@ -366,9 +382,17 @@ Caso você tenha fechado o bat, basta digitar dentro da pasta do projeto:
 ## 📁 Estrutura
 
 ```text
-├── src/                 # scripts do pipeline (main, upload, convert, execute_sql, destroy)
-├── sql/                 # DDL e objetos Snowflake (0..9, executados em ordem)
-├── infrastructure/      # Terraform (bucket S3 e prefixos)
-├── tests/               # testes com pytest
-└── run.bat              # atalho de execução no Windows
+├── .devcontainer/       # Configuração do ambiente Dev Container
+├── .github/             # Configurações do GitHub
+├── data/                # Dados utilizados pelo projeto
+├── img/                 # Imagens da documentação
+├── infrastructure/      # Infraestrutura como código utilizando Terraform
+├── sql/                 # Scripts SQL executados no Snowflake
+├── src/                 # Scripts responsáveis pela execução do pipeline
+├── tests/               # Testes automatizados
+├── .env.example         # Exemplo de variáveis de ambiente
+├── pyproject.toml       # Configuração e dependências do projeto
+├── uv.lock              # Dependências bloqueadas pelo uv
+├── run.bat              # Script de execução para Windows
+└── README.md            # Documentação do projeto
 ```
