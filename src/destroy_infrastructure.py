@@ -28,6 +28,7 @@ def destroy_all():
 
     try:
         conn.execute_string(queries)
+        conn.close()
 
         print("🗑️   Snowflake infrastructure removida.")
 
