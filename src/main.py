@@ -43,7 +43,9 @@ def main():
     print(f"Glue Job iniciado: {job_run_id}")
 
     conn = get_connection()
-    conn.execute_string("""ALTER PIPE ANTI_FRAUD_DB.RAW.BRONZE_TRANSACTIONS_PIPE REFRESH;""")
+    conn.execute_string("""
+                            
+                            ALTER PIPE ANTI_FRAUD_DB.RAW.BRONZE_TRANSACTIONS_PIPE REFRESH;""")
     conn.close()
 
     print("\n" + "=" * 50)
