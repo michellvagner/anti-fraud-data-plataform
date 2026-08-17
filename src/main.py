@@ -66,6 +66,8 @@ def main():
 
     cursor = conn.cursor()
 
+    time.sleep(10)
+
     cursor.execute("USE DATABASE ANTI_FRAUD_DB")
     cursor.execute("USE SCHEMA RAW")
 
