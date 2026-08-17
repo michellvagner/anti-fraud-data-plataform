@@ -32,5 +32,10 @@
     }
   },
 
+  "containerEnv": {
+    "AWS_DEFAULT_REGION": "us-east-1",
+    "AWS_REGION": "us-east-1"
+  },
+
   "postCreateCommand": "chmod +x .devcontainer/setup.sh && .devcontainer/setup.sh"
 }
