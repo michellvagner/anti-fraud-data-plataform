@@ -33,6 +33,7 @@ def get_pipe_sqs_arn(conn):
 # %%
 
 def execute_sql_files(conn, start_file, end_file):
+    _ = conn.cursor()
     sql_directory = Path(__file__).parent.parent / "sql"
 
     sql_files = sorted(sql_directory.glob("*.sql"))
@@ -50,6 +51,9 @@ def execute_sql_files(conn, start_file, end_file):
         if sql_file.name == "1_stage_s3_transactions.sql":
             template = Template(sql)
             sql = template.render(**get_aws_credentials())
+
+        _.execute("USE DATABASE ANTI_FRAUD_DB")
+        _.execute("USE SCHEMA RAW")  
 
         cursors = conn.execute_string(sql)
 
