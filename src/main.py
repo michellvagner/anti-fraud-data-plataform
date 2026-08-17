@@ -1,4 +1,5 @@
 # %%
+import boto3
 import subprocess
 from pathlib import Path
 from execute_sql import setup_snowflake
@@ -31,7 +32,15 @@ def main():
     upload_transactions()
 
     print("\n[4/4] Convertendo transações...")
-    process_transactions()
+
+    glue = boto3.client("glue")
+
+    response = glue.start_job_run(
+        JobName="anti-fraud-csv-to-parquet"
+    )
+    
+    job_run_id = response["JobRunId"]
+    print(f"Glue Job iniciado: {job_run_id}")
 
     print("\n" + "=" * 50)
     print("PIPELINE FINALIZADO COM SUCESSO!")
