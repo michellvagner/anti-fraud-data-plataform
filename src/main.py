@@ -4,7 +4,7 @@ import subprocess
 from pathlib import Path
 from execute_sql import setup_snowflake
 from upload_transactions import upload_transactions
-from convert_transactions import process_transactions
+from snowflake_connection import get_connection
 
 # %%
 
@@ -41,6 +41,10 @@ def main():
     
     job_run_id = response["JobRunId"]
     print(f"Glue Job iniciado: {job_run_id}")
+
+    conn = get_connection()
+    conn.execute_string("""ALTER PIPE RAW.BRONZE_TRANSACTIONS_PIPE REFRESH;""")
+    conn.close()
 
     print("\n" + "=" * 50)
     print("PIPELINE FINALIZADO COM SUCESSO!")
