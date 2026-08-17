@@ -1,4 +1,5 @@
 # %%
+import time
 import boto3
 import subprocess
 from pathlib import Path
@@ -41,6 +42,38 @@ def main():
     
     job_run_id = response["JobRunId"]
     print(f"Glue Job iniciado: {job_run_id}")
+
+    while True:
+        job = glue.get_job_run(
+            JobName="anti-fraud-csv-to-parquet",
+            RunId=job_run_id
+        )
+
+        status = job["JobRun"]["JobRunState"]
+
+        print(f"Status do Glue: {status}")
+
+        if status == "SUCCEEDED":
+            print("Glue finalizado com sucesso!")
+            break
+
+        elif status in ["FAILED", "STOPPED", "TIMEOUT", "ERROR"]:
+            raise Exception(f"Glue Job terminou com status: {status}")
+
+        time.sleep(50)
+
+    conn = get_connection()
+
+    cursor = conn.cursor()
+
+    cursor.execute("USE DATABASE ANTI_FRAUD_DB")
+    cursor.execute("USE SCHEMA RAW")
+
+    cursor.execute("""
+        ALTER PIPE BRONZE_TRANSACTIONS_PIPE REFRESH
+    """)
+
+    cursor.close()
 
     print("\n" + "=" * 50)
     print("PIPELINE FINALIZADO COM SUCESSO!")

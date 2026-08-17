@@ -15,6 +15,17 @@ with open(sql_files / "9_suspend_drop_pipe_tasks.sql", "r", encoding="utf-8") as
 def destroy_all():
     conn = get_connection()
 
+    cursor = conn.cursor()
+    
+    cursor.execute("USE DATABASE ANTI_FRAUD_DB")
+    cursor.execute("USE SCHEMA RAW")
+    
+    cursor.execute("""
+            ALTER PIPE BRONZE_TRANSACTIONS_PIPE REFRESH
+        """)
+    
+    cursor.close()
+
     terraform_directory = (
         Path(__file__).resolve().parent.parent
         / "infrastructure"
